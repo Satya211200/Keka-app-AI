@@ -8,7 +8,9 @@ interface TokenPayload {
 }
 
 export const getToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') {
+    return null;
+  }
   return localStorage.getItem('token');
 };
 
@@ -21,15 +23,7 @@ export const removeToken = (): void => {
 };
 
 export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  if (!token) return false;
-
-  try {
-    const decoded = jwtDecode<TokenPayload>(token);
-    return decoded.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
+  return !!getToken();
 };
 
 export const getUserRole = (): string | null => {
@@ -37,9 +31,9 @@ export const getUserRole = (): string | null => {
   if (!token) return null;
 
   try {
-    const decoded = jwtDecode<TokenPayload>(token);
-    return decoded.role;
-  } catch {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch (error) {
     return null;
   }
 };

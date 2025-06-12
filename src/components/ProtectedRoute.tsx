@@ -1,47 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, getUserRole } from '@/utils/auth';
-import LoadingSpinner from './LoadingSpinner';
+import { useEffect } from 'react';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requiredRole?: string;
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!isAuthenticated()) {
-        router.push('/login');
-        return;
-      }
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
-      if (requiredRole) {
-        const userRole = getUserRole();
-        if (userRole !== requiredRole) {
-          router.push('/unauthorized');
-          return;
-        }
-      }
-
-      setIsLoading(false);
-    };
-
-    checkAuth();
-  }, [router, requiredRole]);
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute; 
+  return user ? <>{children}</> : null;
+} 
