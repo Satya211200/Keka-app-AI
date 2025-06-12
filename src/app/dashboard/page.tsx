@@ -1,8 +1,8 @@
 import React from 'react';
-import { Line, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const attendanceData = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -23,6 +23,28 @@ const performanceData = {
       label: 'Performance Score',
       data: [85, 90, 75, 88, 92],
       backgroundColor: 'rgba(153, 102, 255, 0.5)',
+    },
+  ],
+};
+
+const companyPerformanceData = {
+  labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+  datasets: [
+    {
+      label: 'Revenue',
+      data: [100, 120, 140, 160],
+      borderColor: 'rgb(255, 99, 132)',
+      tension: 0.1,
+    },
+  ],
+};
+
+const genderRatioData = {
+  labels: ['Male', 'Female'],
+  datasets: [
+    {
+      data: [60, 40],
+      backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 99, 132, 0.5)'],
     },
   ],
 };
@@ -60,6 +82,16 @@ export default function DashboardPage() {
           <div className="card">
             <h2 className="text-xl font-semibold mb-4">Performance Metrics</h2>
             <Bar data={performanceData} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="card">
+            <h2 className="text-xl font-semibold mb-4">Company Performance</h2>
+            <Line data={companyPerformanceData} />
+          </div>
+          <div className="card">
+            <h2 className="text-xl font-semibold mb-4">Gender Ratio</h2>
+            <Pie data={genderRatioData} />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
