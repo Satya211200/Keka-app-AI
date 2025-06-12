@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Line, Bar, Pie, Doughnut, Radar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale } from 'chart.js';
 import { FiUsers, FiCalendar, FiDollarSign, FiClock, FiTrendingUp, FiAlertCircle, FiActivity, FiTarget, FiAward, FiTrendingDown, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useRef } from 'react';
+import type { DraggableProvided, DraggableStateSnapshot, DroppableProvided, DropResult } from 'react-beautiful-dnd';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -184,6 +188,17 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [notifications, setNotifications] = useState(3);
   const [showAITips, setShowAITips] = useState(true);
+  const [quickActionsOrder, setQuickActionsOrder] = useState(quickActions.map(a => a.id));
+  const [modalOpen, setModalOpen] = useState<number | null>(null);
+  const [aiOpen, setAIOpen] = useState(false);
+
+  function onDragEnd(result: DropResult) {
+    if (!result.destination) return;
+    const newOrder = Array.from(quickActionsOrder);
+    const [removed] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, removed);
+    setQuickActionsOrder(newOrder);
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -298,23 +313,43 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions with AI Tips */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {quickActions.map((action) => (
-              <div key={action.id} className="relative">
-                <button
-                  className={`${action.color} text-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center space-x-3 w-full`}
-                >
-                  {action.icon}
-                  <span>{action.title}</span>
-                </button>
-                {showAITips && (
-                  <div className="absolute bottom-full left-0 mb-2 w-full bg-gray-800 text-white text-xs p-2 rounded-lg">
-                    {action.aiTip}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="quickActions" direction="horizontal">
+              {(provided: DroppableProvided) => (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" ref={provided.innerRef} {...provided.droppableProps}>
+                  {quickActionsOrder.map((id, idx) => {
+                    const action = quickActions.find(a => a.id === id)!;
+                    return (
+                      <Draggable key={action.id} draggableId={String(action.id)} index={idx}>
+                        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`relative ${snapshot.isDragging ? 'scale-105 shadow-lg' : ''}`}
+                          >
+                            <button
+                              className={`${action.color} text-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center space-x-3 w-full`}
+                              onClick={() => setModalOpen(action.id)}
+                            >
+                              {action.icon}
+                              <span>{action.title}</span>
+                            </button>
+                            {showAITips && (
+                              <div className="absolute bottom-full left-0 mb-2 w-full bg-gray-800 text-white text-xs p-2 rounded-lg z-10">
+                                {action.aiTip}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
 
           {/* Predictive Analytics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -414,6 +449,112 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* Modals for Quick Actions */}
+      {quickActions.map(action => (
+        <Transition appear show={modalOpen === action.id} as={Fragment} key={action.id}>
+          <Dialog as="div" className="relative z-50" onClose={() => setModalOpen(null)}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
+              leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center space-x-2">
+                      {action.icon}
+                      <span>{action.title}</span>
+                    </Dialog.Title>
+                    <div className="mt-2">
+                      {/* Modal content per action */}
+                      {action.id === 1 && (
+                        <div>
+                          <p className="mb-2">Mark your attendance for today. See trends and history below.</p>
+                          <button className="btn btn-primary w-full mb-2">Mark Attendance</button>
+                          <p className="text-xs text-gray-500">Optimal check-in: 9:15 AM (AI)</p>
+                        </div>
+                      )}
+                      {action.id === 2 && (
+                        <div>
+                          <p className="mb-2">Apply for leave or view your leave statistics.</p>
+                          <button className="btn btn-primary w-full mb-2">Apply Leave</button>
+                          <p className="text-xs text-gray-500">AI predicts low leave requests next month.</p>
+                        </div>
+                      )}
+                      {action.id === 3 && (
+                        <div>
+                          <p className="mb-2">View your latest payslip and salary breakdown.</p>
+                          <button className="btn btn-primary w-full mb-2">View Payslip</button>
+                          <p className="text-xs text-gray-500">Market analysis suggests 8% salary adjustment.</p>
+                        </div>
+                      )}
+                      {action.id === 4 && (
+                        <div>
+                          <p className="mb-2">See your team's analytics and top performers.</p>
+                          <button className="btn btn-primary w-full mb-2">View Team Analytics</button>
+                          <p className="text-xs text-gray-500">Team performance trending up by 15%.</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                      <button className="btn btn-secondary" onClick={() => setModalOpen(null)}>Close</button>
+                    </div>
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
+      ))}
+
+      {/* Floating AI Assistant Button */}
+      <button
+        className="fixed bottom-8 right-8 bg-primary-600 text-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform z-50"
+        onClick={() => setAIOpen(true)}
+        aria-label="Open AI Assistant"
+      >
+        <FiActivity className="text-2xl" />
+      </button>
+      <Transition appear show={aiOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setAIOpen(false)}>
+          <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center space-x-2">
+                    <FiActivity className="text-primary-600" />
+                    <span>HR Pulse AI Assistant</span>
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="mb-2">How can I help you today?</p>
+                    <ul className="list-disc pl-5 text-sm text-gray-700">
+                      <li>Ask for analytics ("Show me this month's attendance trends")</li>
+                      <li>Get HR help ("How do I apply for leave?")</li>
+                      <li>Request predictions ("Predict next month's attrition")</li>
+                      <li>And more…</li>
+                    </ul>
+                    <input className="input mt-4 w-full" placeholder="Type your question..." />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button className="btn btn-secondary" onClick={() => setAIOpen(false)}>Close</button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 } 
