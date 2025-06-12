@@ -7,6 +7,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useRef } from 'react';
 import type { DraggableProvided, DraggableStateSnapshot, DroppableProvided, DropResult } from 'react-beautiful-dnd';
+import { useDarkMode } from '../layout';
+import { io, Socket } from 'socket.io-client';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -191,6 +193,15 @@ export default function DashboardPage() {
   const [quickActionsOrder, setQuickActionsOrder] = useState(quickActions.map(a => a.id));
   const [modalOpen, setModalOpen] = useState<number | null>(null);
   const [aiOpen, setAIOpen] = useState(false);
+  const { dark, toggle } = useDarkMode();
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const s = io('http://localhost:8000');
+    setSocket(s);
+    s.on('notification', () => setNotifications((n) => n + 1));
+    return () => { s.disconnect(); };
+  }, []);
 
   function onDragEnd(result: DropResult) {
     if (!result.destination) return;
@@ -201,7 +212,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
@@ -289,6 +300,12 @@ export default function DashboardPage() {
                 />
                 <span className="text-gray-700">John Doe</span>
               </div>
+              <button
+                className="ml-4 px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                onClick={toggle}
+              >
+                {dark ? 'Light Mode' : 'Dark Mode'}
+              </button>
             </div>
           </div>
         </header>
