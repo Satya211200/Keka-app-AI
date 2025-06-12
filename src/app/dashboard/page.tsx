@@ -9,6 +9,7 @@ import { Fragment, useRef } from 'react';
 import type { DraggableProvided, DraggableStateSnapshot, DroppableProvided, DropResult } from 'react-beautiful-dnd';
 import { useDarkMode } from '../layout';
 import { io, Socket } from 'socket.io-client';
+import { PaperAirplaneIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -195,6 +196,23 @@ export default function DashboardPage() {
   const [aiOpen, setAIOpen] = useState(false);
   const { dark, toggle } = useDarkMode();
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { from: 'ai', text: 'Hi! I am your HR AI assistant. How can I help you today?' },
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const smartReplies = [
+    'Show me my payslip',
+    "Predict next month's attrition",
+    'How many leaves do I have left?',
+    'Show company news',
+  ];
+
+  // Custom widgets state
+  const [widgets, setWidgets] = useState([
+    { id: 1, type: 'weather' },
+    { id: 2, type: 'news' },
+  ]);
 
   useEffect(() => {
     const s = io('http://localhost:8000');
@@ -209,6 +227,22 @@ export default function DashboardPage() {
     const [removed] = newOrder.splice(result.source.index, 1);
     newOrder.splice(result.destination.index, 0, removed);
     setQuickActionsOrder(newOrder);
+  }
+
+  function sendChat(msg: string) {
+    setChatMessages((m) => [...m, { from: 'user', text: msg }]);
+    setTimeout(() => {
+      // Simulate AI reply
+      setChatMessages((m) => [...m, { from: 'ai', text: `AI: Here's the info for "${msg}" (demo response).` }]);
+    }, 800);
+  }
+
+  function addWidget(type: string) {
+    setWidgets((w) => [...w, { id: Date.now(), type }]);
+  }
+
+  function removeWidget(id: number) {
+    setWidgets((w) => w.filter((w) => w.id !== id));
   }
 
   return (
@@ -464,6 +498,50 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Custom Widgets */}
+          <div className="mb-6">
+            <div className="flex items-center mb-2">
+              <h2 className="text-lg font-semibold mr-2">Custom Widgets</h2>
+              <button
+                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
+                onClick={() => addWidget('weather')}
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />Weather
+              </button>
+              <button
+                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
+                onClick={() => addWidget('news')}
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />News
+              </button>
+              <button
+                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
+                onClick={() => addWidget('kpi')}
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />KPI Chart
+              </button>
+              <button
+                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
+                onClick={() => addWidget('poll')}
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />Poll
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {widgets.map((w) => (
+                <div key={w.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm relative">
+                  <button className="absolute top-2 right-2 text-gray-400 hover:text-red-500" onClick={() => removeWidget(w.id)}>
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                  {w.type === 'weather' && <div><h3 className="font-semibold mb-1">Weather</h3><p>🌤️ 28°C, Sunny</p></div>}
+                  {w.type === 'news' && <div><h3 className="font-semibold mb-1">Company News</h3><ul className="text-sm"><li>- Q2 results released</li><li>- New HR policy update</li></ul></div>}
+                  {w.type === 'kpi' && <div><h3 className="font-semibold mb-1">KPI Chart</h3><p>Chart coming soon…</p></div>}
+                  {w.type === 'poll' && <div><h3 className="font-semibold mb-1">Quick Poll</h3><p>Do you like the new dashboard?</p><button className="btn btn-primary mr-2">Yes</button><button className="btn btn-secondary">No</button></div>}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -532,16 +610,16 @@ export default function DashboardPage() {
         </Transition>
       ))}
 
-      {/* Floating AI Assistant Button */}
+      {/* Floating AI Chat Button */}
       <button
         className="fixed bottom-8 right-8 bg-primary-600 text-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform z-50"
-        onClick={() => setAIOpen(true)}
-        aria-label="Open AI Assistant"
+        onClick={() => setChatOpen(true)}
+        aria-label="Open AI Chat"
       >
-        <FiActivity className="text-2xl" />
+        <PaperAirplaneIcon className="w-6 h-6" />
       </button>
-      <Transition appear show={aiOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setAIOpen(false)}>
+      <Transition appear show={chatOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setChatOpen(false)}>
           <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
             <div className="fixed inset-0 bg-black bg-opacity-25" />
           </Transition.Child>
