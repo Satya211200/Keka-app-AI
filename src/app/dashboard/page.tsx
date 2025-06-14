@@ -7,9 +7,26 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useRef } from 'react';
 import type { DraggableProvided, DraggableStateSnapshot, DroppableProvided, DropResult } from 'react-beautiful-dnd';
-import { useDarkMode } from '../layout';
+import { useDarkMode } from '@/components/DarkModeProvider';
 import { io, Socket } from 'socket.io-client';
 import { PaperAirplaneIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Users, Calendar, FileText, DollarSign, 
+  BarChart2, PieChart, Bell, Search,
+  Settings, HelpCircle, MessageSquare,
+  ChevronDown, ChevronRight, Plus,
+  Clock, Award, Briefcase, Mail,
+  Shield, Zap, Star, TrendingUp,
+  BookOpen, Target, Heart, ShieldCheck,
+  Building, CreditCard, FileCheck, Users2,
+  BarChart, LineChart, PieChart as PieChartIcon,
+  Activity, Zap as ZapIcon, Brain, Rocket,
+  Globe, Lock, Key, Database, Server,
+  Code, Terminal, Box, Package, Truck,
+  Home, Map, Navigation, Compass,
+  Menu
+} from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -155,501 +172,581 @@ const aiInsights = [
   },
 ];
 
-// Quick Actions with AI Recommendations
-const quickActions = [
+// Apple-inspired color palette
+const applePalette = {
+  background: 'bg-gradient-to-br from-white via-gray-50 to-gray-100',
+  card: 'bg-white/90 backdrop-blur-lg',
+  border: 'border border-gray-200',
+  shadow: 'shadow-xl',
+  accent: 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-300',
+};
+
+// Navigation items with nested sections
+const navigationItems = [
+  {
+    title: 'Core HR',
+    icon: Users,
+    items: [
+      { name: 'Employee Directory', href: '/employees' },
+      { name: 'Onboarding', href: '/onboarding' },
+      { name: 'Offboarding', href: '/offboarding' },
+      { name: 'Document Management', href: '/documents' },
+      { name: 'Employee Profiles', href: '/profiles' },
+      { name: 'Workforce Planning', href: '/workforce-planning' },
+    ]
+  },
+  {
+    title: 'Time & Attendance',
+    icon: Clock,
+    items: [
+      { name: 'Time Tracking', href: '/time-tracking' },
+      { name: 'Attendance', href: '/attendance' },
+      { name: 'Leave Management', href: '/leave' },
+      { name: 'Shift Management', href: '/shifts' },
+      { name: 'Overtime Tracking', href: '/overtime' },
+      { name: 'Schedule Optimization', href: '/schedule-optimization' },
+    ]
+  },
+  {
+    title: 'Payroll & Benefits',
+    icon: DollarSign,
+    items: [
+      { name: 'Payroll Processing', href: '/payroll' },
+      { name: 'Benefits Admin', href: '/benefits' },
+      { name: 'Compensation', href: '/compensation' },
+      { name: 'Tax Management', href: '/tax' },
+      { name: 'Expense Management', href: '/expenses' },
+      { name: 'Budget Planning', href: '/budget' },
+    ]
+  },
+  {
+    title: 'Performance',
+    icon: TrendingUp,
+    items: [
+      { name: 'Performance Reviews', href: '/reviews' },
+      { name: 'Goals & OKRs', href: '/goals' },
+      { name: 'Feedback', href: '/feedback' },
+      { name: 'Learning & Development', href: '/learning' },
+      { name: 'Career Planning', href: '/career-planning' },
+      { name: 'Succession Planning', href: '/succession' },
+    ]
+  },
+  {
+    title: 'Recruitment',
+    icon: Briefcase,
+    items: [
+      { name: 'Job Postings', href: '/jobs' },
+      { name: 'Candidates', href: '/candidates' },
+      { name: 'Interviews', href: '/interviews' },
+      { name: 'Offer Management', href: '/offers' },
+      { name: 'Talent Pipeline', href: '/talent-pipeline' },
+      { name: 'Recruitment Analytics', href: '/recruitment-analytics' },
+    ]
+  },
+  {
+    title: 'Analytics',
+    icon: BarChart2,
+    items: [
+      { name: 'HR Metrics', href: '/metrics' },
+      { name: 'Reports', href: '/reports' },
+      { name: 'Dashboards', href: '/dashboards' },
+      { name: 'Forecasting', href: '/forecasting' },
+      { name: 'Predictive Analytics', href: '/predictive' },
+      { name: 'Custom Reports', href: '/custom-reports' },
+    ]
+  },
+  {
+    title: 'Learning & Development',
+    icon: BookOpen,
+    items: [
+      { name: 'Training Programs', href: '/training' },
+      { name: 'Course Catalog', href: '/courses' },
+      { name: 'Certifications', href: '/certifications' },
+      { name: 'Skills Matrix', href: '/skills' },
+      { name: 'Learning Paths', href: '/learning-paths' },
+      { name: 'Knowledge Base', href: '/knowledge-base' },
+    ]
+  },
+  {
+    title: 'Compliance & Risk',
+    icon: ShieldCheck,
+    items: [
+      { name: 'Policy Management', href: '/policies' },
+      { name: 'Compliance Tracking', href: '/compliance' },
+      { name: 'Risk Assessment', href: '/risk' },
+      { name: 'Audit Management', href: '/audits' },
+      { name: 'Incident Reports', href: '/incidents' },
+      { name: 'Regulatory Updates', href: '/regulatory' },
+    ]
+  },
+  {
+    title: 'Employee Engagement',
+    icon: Heart,
+    items: [
+      { name: 'Surveys', href: '/surveys' },
+      { name: 'Pulse Checks', href: '/pulse' },
+      { name: 'Recognition', href: '/recognition' },
+      { name: 'Wellness Programs', href: '/wellness' },
+      { name: 'Social Feed', href: '/social' },
+      { name: 'Team Building', href: '/team-building' },
+    ]
+  },
+  {
+    title: 'Resource Management',
+    icon: Building,
+    items: [
+      { name: 'Asset Tracking', href: '/assets' },
+      { name: 'Equipment Management', href: '/equipment' },
+      { name: 'Facility Management', href: '/facilities' },
+      { name: 'IT Resources', href: '/it-resources' },
+      { name: 'Vendor Management', href: '/vendors' },
+      { name: 'Inventory Control', href: '/inventory' },
+    ]
+  },
+  {
+    title: 'Project Management',
+    icon: Target,
+    items: [
+      { name: 'Project Tracking', href: '/projects' },
+      { name: 'Task Management', href: '/tasks' },
+      { name: 'Resource Allocation', href: '/resource-allocation' },
+      { name: 'Timeline Planning', href: '/timelines' },
+      { name: 'Project Analytics', href: '/project-analytics' },
+      { name: 'Collaboration Tools', href: '/collaboration' },
+    ]
+  },
+  {
+    title: 'AI & Automation',
+    icon: Brain,
+    items: [
+      { name: 'AI Insights', href: '/ai-insights' },
+      { name: 'Process Automation', href: '/automation' },
+      { name: 'Smart Scheduling', href: '/smart-scheduling' },
+      { name: 'Predictive Analytics', href: '/predictive' },
+      { name: 'Chatbots', href: '/chatbots' },
+      { name: 'Workflow Automation', href: '/workflows' },
+    ]
+  }
+];
+
+// AI-powered quick actions
+const aiQuickActions = [
   { 
     id: 1, 
     title: 'Smart Attendance', 
-    icon: <FiClock />, 
-    color: 'bg-blue-500',
+    icon: Clock,
+    color: 'bg-gray-500',
     aiTip: 'Based on patterns, optimal check-in time is 9:15 AM'
   },
   { 
     id: 2, 
     title: 'Leave Predictor', 
-    icon: <FiCalendar />, 
-    color: 'bg-green-500',
+    icon: Calendar,
+    color: 'bg-gray-500',
     aiTip: 'AI predicts low leave requests next month'
   },
   { 
     id: 3, 
     title: 'Salary Insights', 
-    icon: <FiDollarSign />, 
-    color: 'bg-purple-500',
+    icon: DollarSign,
+    color: 'bg-gray-500',
     aiTip: 'Market analysis suggests 8% salary adjustment'
   },
   { 
     id: 4, 
     title: 'Team Analytics', 
-    icon: <FiUsers />, 
-    color: 'bg-orange-500',
+    icon: Users,
+    color: 'bg-gray-500',
     aiTip: 'Team performance trending up by 15%'
   },
+  {
+    id: 5,
+    title: 'Resource Optimization',
+    icon: Zap,
+    color: 'bg-gray-500',
+    aiTip: 'AI suggests optimal resource allocation'
+  },
+  {
+    id: 6,
+    title: 'Compliance Check',
+    icon: Shield,
+    color: 'bg-gray-500',
+    aiTip: 'All policies up to date'
+  }
+];
+
+// Quick actions for common tasks
+const commonQuickActions = [
+  { name: 'Add Employee', icon: Plus, href: '/employees/new' },
+  { name: 'Process Payroll', icon: DollarSign, href: '/payroll/process' },
+  { name: 'Schedule Interview', icon: Calendar, href: '/interviews/schedule' },
+  { name: 'Create Report', icon: FileText, href: '/reports/new' },
+  { name: 'Assign Training', icon: BookOpen, href: '/training/assign' },
+  { name: 'Update Policies', icon: Shield, href: '/policies/update' }
 ];
 
 export default function DashboardPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState('Core HR');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
-  const [notifications, setNotifications] = useState(3);
-  const [showAITips, setShowAITips] = useState(true);
-  const [quickActionsOrder, setQuickActionsOrder] = useState(quickActions.map(a => a.id));
-  const [modalOpen, setModalOpen] = useState<number | null>(null);
-  const [aiOpen, setAIOpen] = useState(false);
-  const { dark, toggle } = useDarkMode();
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { from: 'ai', text: 'Hi! I am your HR AI assistant. How can I help you today?' },
-  ]);
-  const [chatInput, setChatInput] = useState('');
-  const smartReplies = [
-    'Show me my payslip',
-    "Predict next month's attrition",
-    'How many leaves do I have left?',
-    'Show company news',
-  ];
-
-  // Custom widgets state
-  const [widgets, setWidgets] = useState([
-    { id: 1, type: 'weather' },
-    { id: 2, type: 'news' },
-  ]);
-
-  useEffect(() => {
-    const s = io('http://localhost:8000');
-    setSocket(s);
-    s.on('notification', () => setNotifications((n) => n + 1));
-    return () => { s.disconnect(); };
-  }, []);
-
-  function onDragEnd(result: DropResult) {
-    if (!result.destination) return;
-    const newOrder = Array.from(quickActionsOrder);
-    const [removed] = newOrder.splice(result.source.index, 1);
-    newOrder.splice(result.destination.index, 0, removed);
-    setQuickActionsOrder(newOrder);
-  }
-
-  function sendChat(msg: string) {
-    setChatMessages((m) => [...m, { from: 'user', text: msg }]);
-    setTimeout(() => {
-      // Simulate AI reply
-      setChatMessages((m) => [...m, { from: 'ai', text: `AI: Here's the info for "${msg}" (demo response).` }]);
-    }, 800);
-  }
-
-  function addWidget(type: string) {
-    setWidgets((w) => [...w, { id: Date.now(), type }]);
-  }
-
-  function removeWidget(id: number) {
-    setWidgets((w) => w.filter((w) => w.id !== id));
-  }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold text-primary-600">HR Pulse AI</h2>
+    <div className={`min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 transition-colors duration-700`}>
+      {/* Top Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-lg border-b border-gray-200 z-50">
+        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900">HR Pulse</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+            >
+              <Search className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-700">⌘K</span>
+            </button>
+            <button className="p-2 rounded-lg hover:bg-gray-100">
+              <Bell className="w-6 h-6 text-gray-700" />
+            </button>
+            <button className="p-2 rounded-lg hover:bg-gray-100">
+              <Settings className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
         </div>
-        <nav className="mt-4">
-          <ul className="space-y-1">
-            <li>
+      </nav>
+
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white/90 backdrop-blur-lg border-r border-gray-200 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-4 space-y-4">
+          {navigationItems.map((section) => (
+            <div key={section.title}>
               <button
-                onClick={() => setActiveTab('overview')}
-                className={`w-full text-left p-3 flex items-center space-x-3 ${
-                  activeTab === 'overview' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
+                onClick={() => setActiveSection(section.title)}
+                className={`w-full flex items-center justify-between p-2 rounded-lg ${
+                  activeSection === section.title ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
-                <FiTrendingUp className="text-lg" />
-                <span>AI Overview</span>
+                <div className="flex items-center space-x-2">
+                  <section.icon className="w-5 h-5 text-gray-700" />
+                  <span className="text-gray-900">{section.title}</span>
+                </div>
+                {activeSection === section.title ? (
+                  <ChevronDown className="w-5 h-5 text-gray-700" />
+                ) : (
+                  <ChevronRight className="w-5 h-5 text-gray-700" />
+                )}
               </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`w-full text-left p-3 flex items-center space-x-3 ${
-                  activeTab === 'analytics' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <FiActivity className="text-lg" />
-                <span>Predictive Analytics</span>
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab('employees')}
-                className={`w-full text-left p-3 flex items-center space-x-3 ${
-                  activeTab === 'employees' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <FiUsers className="text-lg" />
-                <span>Employee Insights</span>
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab('attendance')}
-                className={`w-full text-left p-3 flex items-center space-x-3 ${
-                  activeTab === 'attendance' ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <FiCalendar className="text-lg" />
-                <span>Smart Attendance</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
+              {activeSection === section.title && (
+                <div className="mt-2 ml-6 space-y-1">
+                  {section.items.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="block p-2 rounded-lg hover:bg-gray-50 text-gray-800"
+                    >
+                      {item.name}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {/* Header */}
-        <header className="bg-white shadow-sm p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">AI-Powered Dashboard</h1>
-              <p className="text-sm text-gray-500">Real-time insights and predictions</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowAITips(!showAITips)}
-                className="text-sm text-primary-600 hover:text-primary-700"
-              >
-                {showAITips ? 'Hide AI Tips' : 'Show AI Tips'}
-              </button>
-              <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full">
-                <FiAlertCircle className="text-xl" />
-                {notifications > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {notifications}
-                  </span>
-                )}
-              </button>
-              <div className="flex items-center space-x-2">
-                <img
-                  src="https://ui-avatars.com/api/?name=John+Doe&background=random"
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="text-gray-700">John Doe</span>
-              </div>
-              <button
-                className="ml-4 px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-                onClick={toggle}
-              >
-                {dark ? 'Light Mode' : 'Dark Mode'}
-              </button>
-            </div>
-          </div>
-        </header>
+      <main className={`pt-16 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Welcome Section */}
+          <section className="mb-8">
+            <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome back, Satyajeet</h2>
+            <p className="text-gray-600">Here's what's happening in your organization today.</p>
+          </section>
 
-        {/* Dashboard Content */}
-        <div className="p-6">
-          {/* AI Insights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {aiInsights.map((insight) => (
-              <div key={insight.id} className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-                <div className="flex items-start space-x-3">
-                  <div className="p-2 rounded-full bg-green-50">
-                    {insight.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{insight.title}</h3>
-                    <p className="text-sm text-gray-600">{insight.description}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {/* Tabs */}
+          <div className="mb-8 border-b border-gray-200">
+            <nav className="flex space-x-8">
+              {['overview', 'analytics', 'tasks', 'reports', 'settings'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab
+                      ? 'border-gray-900 text-gray-900'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
           </div>
 
-          {/* Quick Actions with AI Tips */}
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="quickActions" direction="horizontal">
-              {(provided: DroppableProvided) => (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" ref={provided.innerRef} {...provided.droppableProps}>
-                  {quickActionsOrder.map((id, idx) => {
-                    const action = quickActions.find(a => a.id === id)!;
-                    return (
-                      <Draggable key={action.id} draggableId={String(action.id)} index={idx}>
-                        {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`relative ${snapshot.isDragging ? 'scale-105 shadow-lg' : ''}`}
-                          >
-                            <button
-                              className={`${action.color} text-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center space-x-3 w-full`}
-                              onClick={() => setModalOpen(action.id)}
-                            >
-                              {action.icon}
-                              <span>{action.title}</span>
-                            </button>
-                            {showAITips && (
-                              <div className="absolute bottom-full left-0 mb-2 w-full bg-gray-800 text-white text-xs p-2 rounded-lg z-10">
-                                {action.aiTip}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          {/* Predictive Analytics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Predictive Performance</h2>
-              <Line data={predictiveData} options={{
-                responsive: true,
-                interaction: {
-                  mode: 'index',
-                  intersect: false,
-                },
-                plugins: {
-                  legend: {
-                    position: 'top',
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                          label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                          label += context.parsed.y + '%';
-                        }
-                        return label;
-                      }
-                    }
-                  }
-                },
-              }} />
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Employee Engagement</h2>
-              <Radar data={engagementData} options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top',
-                  },
-                },
-                scales: {
-                  r: {
-                    beginAtZero: true,
-                    max: 100,
-                  }
-                }
-              }} />
-            </div>
-          </div>
-
-          {/* Skill Gap Analysis */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Skill Gap Analysis</h2>
-              <Bar data={skillGapData} options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top',
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                  }
-                }
-              }} />
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">AI Recommendations</h2>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                  <FiCheckCircle className="text-blue-600" />
-                  <div>
-                    <p className="font-medium text-blue-800">Training Program</p>
-                    <p className="text-sm text-blue-600">Recommended for 5 employees to improve technical skills</p>
+          {/* AI Quick Actions */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">AI Insights</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {aiQuickActions.map((action) => (
+                <div
+                  key={action.id}
+                  className={`p-6 rounded-xl bg-white border border-gray-200 shadow-xl hover:scale-105 transition-transform`}
+                >
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className={`p-2 rounded-lg ${action.color}`}>
+                      <action.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="font-medium text-gray-900">{action.title}</h4>
                   </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <FiTrendingUp className="text-green-600" />
-                  <div>
-                    <p className="font-medium text-green-800">Performance Boost</p>
-                    <p className="text-sm text-green-600">Team productivity increased by 15% this quarter</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                  <FiTarget className="text-purple-600" />
-                  <div>
-                    <p className="font-medium text-purple-800">Career Path</p>
-                    <p className="text-sm text-purple-600">3 employees ready for promotion based on performance</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Custom Widgets */}
-          <div className="mb-6">
-            <div className="flex items-center mb-2">
-              <h2 className="text-lg font-semibold mr-2">Custom Widgets</h2>
-              <button
-                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
-                onClick={() => addWidget('weather')}
-              >
-                <PlusIcon className="w-4 h-4 mr-1" />Weather
-              </button>
-              <button
-                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
-                onClick={() => addWidget('news')}
-              >
-                <PlusIcon className="w-4 h-4 mr-1" />News
-              </button>
-              <button
-                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
-                onClick={() => addWidget('kpi')}
-              >
-                <PlusIcon className="w-4 h-4 mr-1" />KPI Chart
-              </button>
-              <button
-                className="flex items-center px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 ml-2"
-                onClick={() => addWidget('poll')}
-              >
-                <PlusIcon className="w-4 h-4 mr-1" />Poll
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {widgets.map((w) => (
-                <div key={w.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm relative">
-                  <button className="absolute top-2 right-2 text-gray-400 hover:text-red-500" onClick={() => removeWidget(w.id)}>
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                  {w.type === 'weather' && <div><h3 className="font-semibold mb-1">Weather</h3><p>🌤️ 28°C, Sunny</p></div>}
-                  {w.type === 'news' && <div><h3 className="font-semibold mb-1">Company News</h3><ul className="text-sm"><li>- Q2 results released</li><li>- New HR policy update</li></ul></div>}
-                  {w.type === 'kpi' && <div><h3 className="font-semibold mb-1">KPI Chart</h3><p>Chart coming soon…</p></div>}
-                  {w.type === 'poll' && <div><h3 className="font-semibold mb-1">Quick Poll</h3><p>Do you like the new dashboard?</p><button className="btn btn-primary mr-2">Yes</button><button className="btn btn-secondary">No</button></div>}
+                  <p className="text-sm text-gray-600">{action.aiTip}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
+
+          {/* Quick Actions */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Quick Actions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {commonQuickActions.map((action) => (
+                <button
+                  key={action.name}
+                  className={`p-4 rounded-xl bg-white border border-gray-200 shadow-xl hover:scale-105 transition-transform`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <action.icon className="w-6 h-6 text-gray-700" />
+                    <span className="text-gray-900">{action.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Key Metrics */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Key Metrics</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <MetricCard
+                title="Total Employees"
+                value="1,234"
+                change="+12%"
+                icon={Users}
+              />
+              <MetricCard
+                title="Active Projects"
+                value="45"
+                change="+5%"
+                icon={Briefcase}
+              />
+              <MetricCard
+                title="Open Positions"
+                value="23"
+                change="-3%"
+                icon={Award}
+              />
+              <MetricCard
+                title="Training Hours"
+                value="1,234"
+                change="+8%"
+                icon={Star}
+              />
+            </div>
+          </section>
+
+          {/* Advanced Analytics */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Advanced Analytics</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
+                <h4 className="text-lg font-medium mb-4 text-gray-900">Employee Distribution</h4>
+                {/* Add your chart component here */}
+              </div>
+              <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
+                <h4 className="text-lg font-medium mb-4 text-gray-900">Performance Trends</h4>
+                {/* Add your chart component here */}
+              </div>
+            </div>
+          </section>
+
+          {/* Recent Activity */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Recent Activity</h3>
+            <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
+              <div className="space-y-4">
+                <ActivityItem
+                  icon={Users}
+                  title="New Employee Onboarded"
+                  description="John Doe joined the Engineering team"
+                  time="2 hours ago"
+                />
+                <ActivityItem
+                  icon={Calendar}
+                  title="Team Meeting Scheduled"
+                  description="Quarterly review with the Product team"
+                  time="4 hours ago"
+                />
+                <ActivityItem
+                  icon={Award}
+                  title="Performance Review Completed"
+                  description="Sarah Smith's annual review was submitted"
+                  time="1 day ago"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Upcoming Events */}
+          <section className="mb-8">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900">Upcoming Events</h3>
+            <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
+              <div className="space-y-4">
+                <EventItem
+                  title="Team Building Workshop"
+                  date="Tomorrow, 10:00 AM"
+                  location="Conference Room A"
+                />
+                <EventItem
+                  title="New Hire Orientation"
+                  date="Mar 15, 9:00 AM"
+                  location="Training Room"
+                />
+                <EventItem
+                  title="Leadership Meeting"
+                  date="Mar 16, 2:00 PM"
+                  location="Board Room"
+                />
+              </div>
+            </div>
+          </section>
         </div>
       </main>
 
-      {/* Modals for Quick Actions */}
-      {quickActions.map(action => (
-        <Transition appear show={modalOpen === action.id} as={Fragment} key={action.id}>
-          <Dialog as="div" className="relative z-50" onClose={() => setModalOpen(null)}>
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
-              leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
+      {/* Command Palette */}
+      <AnimatePresence>
+        {isCommandPaletteOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            onClick={() => setIsCommandPaletteOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="max-w-2xl mx-auto mt-20 p-4"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <div className="fixed inset-0 bg-black bg-opacity-25" />
-            </Transition.Child>
-            <div className="fixed inset-0 overflow-y-auto">
-              <div className="flex min-h-full items-center justify-center p-4 text-center">
-                <Transition.Child
-                  as={Fragment}
-                  enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
-                  leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
-                >
-                  <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center space-x-2">
-                      {action.icon}
-                      <span>{action.title}</span>
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      {/* Modal content per action */}
-                      {action.id === 1 && (
-                        <div>
-                          <p className="mb-2">Mark your attendance for today. See trends and history below.</p>
-                          <button className="btn btn-primary w-full mb-2">Mark Attendance</button>
-                          <p className="text-xs text-gray-500">Optimal check-in: 9:15 AM (AI)</p>
-                        </div>
-                      )}
-                      {action.id === 2 && (
-                        <div>
-                          <p className="mb-2">Apply for leave or view your leave statistics.</p>
-                          <button className="btn btn-primary w-full mb-2">Apply Leave</button>
-                          <p className="text-xs text-gray-500">AI predicts low leave requests next month.</p>
-                        </div>
-                      )}
-                      {action.id === 3 && (
-                        <div>
-                          <p className="mb-2">View your latest payslip and salary breakdown.</p>
-                          <button className="btn btn-primary w-full mb-2">View Payslip</button>
-                          <p className="text-xs text-gray-500">Market analysis suggests 8% salary adjustment.</p>
-                        </div>
-                      )}
-                      {action.id === 4 && (
-                        <div>
-                          <p className="mb-2">See your team's analytics and top performers.</p>
-                          <button className="btn btn-primary w-full mb-2">View Team Analytics</button>
-                          <p className="text-xs text-gray-500">Team performance trending up by 15%.</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                      <button className="btn btn-secondary" onClick={() => setModalOpen(null)}>Close</button>
-                    </div>
-                  </Dialog.Panel>
-                </Transition.Child>
+              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xl">
+                <input
+                  type="text"
+                  placeholder="Search or type a command..."
+                  className="w-full p-4 text-lg bg-transparent border-none focus:outline-none text-gray-900"
+                  autoFocus
+                />
+                <div className="mt-4 space-y-2">
+                  <CommandItem icon={Users} title="Go to Employee Directory" />
+                  <CommandItem icon={Calendar} title="Schedule a Meeting" />
+                  <CommandItem icon={FileText} title="Create New Report" />
+                  <CommandItem icon={Settings} title="Open Settings" />
+                </div>
               </div>
-            </div>
-          </Dialog>
-        </Transition>
-      ))}
-
-      {/* Floating AI Chat Button */}
-      <button
-        className="fixed bottom-8 right-8 bg-primary-600 text-white rounded-full p-4 shadow-lg hover:scale-110 transition-transform z-50"
-        onClick={() => setChatOpen(true)}
-        aria-label="Open AI Chat"
-      >
-        <PaperAirplaneIcon className="w-6 h-6" />
-      </button>
-      <Transition appear show={chatOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setChatOpen(false)}>
-          <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 flex items-center space-x-2">
-                    <FiActivity className="text-primary-600" />
-                    <span>HR Pulse AI Assistant</span>
-                  </Dialog.Title>
-                  <div className="mt-2">
-                    <p className="mb-2">How can I help you today?</p>
-                    <ul className="list-disc pl-5 text-sm text-gray-700">
-                      <li>Ask for analytics ("Show me this month's attendance trends")</li>
-                      <li>Get HR help ("How do I apply for leave?")</li>
-                      <li>Request predictions ("Predict next month's attrition")</li>
-                      <li>And more…</li>
-                    </ul>
-                    <input className="input mt-4 w-full" placeholder="Type your question..." />
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <button className="btn btn-secondary" onClick={() => setAIOpen(false)}>Close</button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// Component for metric cards
+interface MetricCardProps {
+  title: string;
+  value: string;
+  change: string;
+  icon: React.ElementType;
+}
+
+function MetricCard({ title, value, change, icon: Icon }: MetricCardProps) {
+  return (
+    <div className={`p-6 rounded-xl ${applePalette.card} ${applePalette.border} ${applePalette.shadow}`}>
+      <div className="flex items-center justify-between mb-4">
+        <Icon className="w-6 h-6" />
+        <span className={`text-sm ${change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+          {change}
+        </span>
+      </div>
+      <h4 className="text-2xl font-bold mb-1">{value}</h4>
+      <p className="text-gray-600">{title}</p>
+    </div>
+  );
+}
+
+// Component for activity items
+interface ActivityItemProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  time: string;
+}
+
+function ActivityItem({ icon: Icon, title, description, time }: ActivityItemProps) {
+  return (
+    <div className="flex items-start space-x-4">
+      <div className="p-2 rounded-lg bg-gray-100">
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="flex-1">
+        <h4 className="font-medium">{title}</h4>
+        <p className="text-sm text-gray-600">{description}</p>
+        <span className="text-xs text-gray-500">{time}</span>
+      </div>
+    </div>
+  );
+}
+
+// Component for event items
+interface EventItemProps {
+  title: string;
+  date: string;
+  location: string;
+}
+
+function EventItem({ title, date, location }: EventItemProps) {
+  return (
+    <div className="flex items-start space-x-4">
+      <div className="p-2 rounded-lg bg-gray-100">
+        <Calendar className="w-5 h-5" />
+      </div>
+      <div className="flex-1">
+        <h4 className="font-medium">{title}</h4>
+        <p className="text-sm text-gray-600">{date}</p>
+        <p className="text-sm text-gray-500">{location}</p>
+      </div>
+    </div>
+  );
+}
+
+// Component for command items
+interface CommandItemProps {
+  icon: React.ElementType;
+  title: string;
+}
+
+function CommandItem({ icon: Icon, title }: CommandItemProps) {
+  return (
+    <button className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100">
+      <Icon className="w-5 h-5" />
+      <span>{title}</span>
+    </button>
   );
 } 
