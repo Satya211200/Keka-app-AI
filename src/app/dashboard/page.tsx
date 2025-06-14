@@ -27,6 +27,7 @@ import {
   Home, Map, Navigation, Compass,
   Menu
 } from 'lucide-react';
+import { Rnd } from 'react-rnd';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement, RadialLinearScale);
 
@@ -385,6 +386,94 @@ const commonQuickActions = [
   { name: 'Update Policies', icon: Shield, href: '/policies/update' }
 ];
 
+// Animated Hero Section
+function AnimatedHero() {
+  return (
+    <section className="relative flex flex-col items-center justify-center h-[40vh] md:h-[50vh] mb-12 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-400 via-pink-300 to-blue-400 animate-gradient-x opacity-80" />
+      <svg className="absolute w-full h-full opacity-30" viewBox="0 0 1440 320"><path fill="#fff" fillOpacity="0.5" d="M0,160L80,170.7C160,181,320,203,480,197.3C640,192,800,160,960,133.3C1120,107,1280,85,1360,74.7L1440,64L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path></svg>
+      <div className="relative z-10 flex flex-col items-center">
+        <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 animate-fade-in">Welcome back, Satyajeet</h1>
+        <p className="text-xl text-white/90 animate-fade-in delay-200">Your AI-powered HR command center</p>
+      </div>
+    </section>
+  );
+}
+
+// Draggable/Resizable Widget Placeholder
+interface CoolWidgetProps {
+  title: string;
+  children: React.ReactNode;
+  defaultPos: { x: number; y: number };
+}
+function CoolWidget({ title, children, defaultPos }: CoolWidgetProps) {
+  return (
+    <Rnd
+      default={{ x: defaultPos.x, y: defaultPos.y, width: 340, height: 200 }}
+      minWidth={220}
+      minHeight={120}
+      bounds="parent"
+      className="rounded-2xl bg-white/60 backdrop-blur-lg shadow-2xl border border-white/30 hover:shadow-3xl transition-all duration-300 cursor-move group"
+    >
+      <div className="flex flex-col h-full p-4">
+        <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">{title}</h3>
+        <div className="flex-1">{children}</div>
+      </div>
+    </Rnd>
+  );
+}
+
+// Floating AI Assistant with Typewriter Effect
+function FloatingAIAssistant() {
+  const [text, setText] = useState('');
+  const fullText = 'Hi! I am your HR AI Assistant. Ask me anything about your team, payroll, or company.';
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setText(fullText.slice(0, i));
+      i++;
+      if (i > fullText.length) clearInterval(interval);
+    }, 30);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <div className="fixed bottom-8 right-8 z-50 bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-200 p-6 w-80 animate-fade-in">
+      <div className="flex items-center mb-2">
+        <Brain className="w-6 h-6 text-purple-500 mr-2" />
+        <span className="font-bold text-gray-900">AI Assistant</span>
+      </div>
+      <p className="text-gray-700 font-mono min-h-[48px]">{text}<span className="animate-blink">|</span></p>
+    </div>
+  );
+}
+
+// Spotlight Command Bar (Ctrl+K)
+interface SpotlightCommandBarProps {
+  open: boolean;
+  onClose: () => void;
+}
+function SpotlightCommandBar({ open, onClose }: SpotlightCommandBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [open]);
+  return open ? (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-32 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-xl p-6" onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => e.stopPropagation()}>
+        <input ref={inputRef} className="w-full p-4 text-lg rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400" placeholder="Type a command or search..." />
+        <div className="mt-4 space-y-2">
+          <CommandItem icon={Users} title="Go to Employee Directory" />
+          <CommandItem icon={Calendar} title="Schedule a Meeting" />
+          <CommandItem icon={FileText} title="Create New Report" />
+          <CommandItem icon={Settings} title="Open Settings" />
+        </div>
+      </div>
+    </div>
+  ) : null;
+}
+
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState('Core HR');
@@ -392,278 +481,39 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
 
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        setIsCommandPaletteOpen(true);
+      }
+      if (e.key === 'Escape') setIsCommandPaletteOpen(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 transition-colors duration-700`}>
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-lg border-b border-gray-200 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">HR Pulse</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsCommandPaletteOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
-            >
-              <Search className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-700">⌘K</span>
-            </button>
-            <button className="p-2 rounded-lg hover:bg-gray-100">
-              <Bell className="w-6 h-6 text-gray-700" />
-            </button>
-            <button className="p-2 rounded-lg hover:bg-gray-100">
-              <Settings className="w-6 h-6 text-gray-700" />
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Sidebar */}
-      <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white/90 backdrop-blur-lg border-r border-gray-200 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-4 space-y-4">
-          {navigationItems.map((section) => (
-            <div key={section.title}>
-              <button
-                onClick={() => setActiveSection(section.title)}
-                className={`w-full flex items-center justify-between p-2 rounded-lg ${
-                  activeSection === section.title ? 'bg-gray-100' : 'hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <section.icon className="w-5 h-5 text-gray-700" />
-                  <span className="text-gray-900">{section.title}</span>
-                </div>
-                {activeSection === section.title ? (
-                  <ChevronDown className="w-5 h-5 text-gray-700" />
-                ) : (
-                  <ChevronRight className="w-5 h-5 text-gray-700" />
-                )}
-              </button>
-              {activeSection === section.title && (
-                <div className="mt-2 ml-6 space-y-1">
-                  {section.items.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className="block p-2 rounded-lg hover:bg-gray-50 text-gray-800"
-                    >
-                      {item.name}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className={`pt-16 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Welcome Section */}
-          <section className="mb-8">
-            <h2 className="text-3xl font-bold mb-4 text-gray-900">Welcome back, Satyajeet</h2>
-            <p className="text-gray-600">Here's what's happening in your organization today.</p>
-          </section>
-
-          {/* Tabs */}
-          <div className="mb-8 border-b border-gray-200">
-            <nav className="flex space-x-8">
-              {['overview', 'analytics', 'tasks', 'reports', 'settings'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab
-                      ? 'border-gray-900 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* AI Quick Actions */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">AI Insights</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {aiQuickActions.map((action) => (
-                <div
-                  key={action.id}
-                  className={`p-6 rounded-xl bg-white border border-gray-200 shadow-xl hover:scale-105 transition-transform`}
-                >
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className={`p-2 rounded-lg ${action.color}`}>
-                      <action.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h4 className="font-medium text-gray-900">{action.title}</h4>
-                  </div>
-                  <p className="text-sm text-gray-600">{action.aiTip}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Quick Actions */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Quick Actions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              {commonQuickActions.map((action) => (
-                <button
-                  key={action.name}
-                  className={`p-4 rounded-xl bg-white border border-gray-200 shadow-xl hover:scale-105 transition-transform`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <action.icon className="w-6 h-6 text-gray-700" />
-                    <span className="text-gray-900">{action.name}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Key Metrics */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Key Metrics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <MetricCard
-                title="Total Employees"
-                value="1,234"
-                change="+12%"
-                icon={Users}
-              />
-              <MetricCard
-                title="Active Projects"
-                value="45"
-                change="+5%"
-                icon={Briefcase}
-              />
-              <MetricCard
-                title="Open Positions"
-                value="23"
-                change="-3%"
-                icon={Award}
-              />
-              <MetricCard
-                title="Training Hours"
-                value="1,234"
-                change="+8%"
-                icon={Star}
-              />
-            </div>
-          </section>
-
-          {/* Advanced Analytics */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Advanced Analytics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
-                <h4 className="text-lg font-medium mb-4 text-gray-900">Employee Distribution</h4>
-                {/* Add your chart component here */}
-              </div>
-              <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
-                <h4 className="text-lg font-medium mb-4 text-gray-900">Performance Trends</h4>
-                {/* Add your chart component here */}
-              </div>
-            </div>
-          </section>
-
-          {/* Recent Activity */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Recent Activity</h3>
-            <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
-              <div className="space-y-4">
-                <ActivityItem
-                  icon={Users}
-                  title="New Employee Onboarded"
-                  description="John Doe joined the Engineering team"
-                  time="2 hours ago"
-                />
-                <ActivityItem
-                  icon={Calendar}
-                  title="Team Meeting Scheduled"
-                  description="Quarterly review with the Product team"
-                  time="4 hours ago"
-                />
-                <ActivityItem
-                  icon={Award}
-                  title="Performance Review Completed"
-                  description="Sarah Smith's annual review was submitted"
-                  time="1 day ago"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Upcoming Events */}
-          <section className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-900">Upcoming Events</h3>
-            <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-xl">
-              <div className="space-y-4">
-                <EventItem
-                  title="Team Building Workshop"
-                  date="Tomorrow, 10:00 AM"
-                  location="Conference Room A"
-                />
-                <EventItem
-                  title="New Hire Orientation"
-                  date="Mar 15, 9:00 AM"
-                  location="Training Room"
-                />
-                <EventItem
-                  title="Leadership Meeting"
-                  date="Mar 16, 2:00 PM"
-                  location="Board Room"
-                />
-              </div>
-            </div>
-          </section>
+    <div className="relative min-h-screen bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100">
+      <AnimatedHero />
+      <main className="relative max-w-7xl mx-auto px-4 py-8 min-h-[60vh]">
+        {/* Draggable/Resizable Widgets */}
+        <div className="relative w-full h-[700px]">
+          <CoolWidget title="AI Insights" defaultPos={{ x: 20, y: 20 }}>
+            <div className="text-purple-700 font-semibold">AI predicts 8% attrition next quarter. <span className="font-mono">(Click & drag me!)</span></div>
+          </CoolWidget>
+          <CoolWidget title="Live Org Chart" defaultPos={{ x: 400, y: 40 }}>
+            <div className="text-blue-700 font-semibold">Org chart visualization coming soon...</div>
+          </CoolWidget>
+          <CoolWidget title="Payroll Trends" defaultPos={{ x: 180, y: 250 }}>
+            <div className="text-pink-700 font-semibold">Payroll analytics and charts here.</div>
+          </CoolWidget>
+          <CoolWidget title="Quick Actions" defaultPos={{ x: 600, y: 300 }}>
+            <div className="text-green-700 font-semibold">Add employee, process payroll, more...</div>
+          </CoolWidget>
         </div>
       </main>
-
-      {/* Command Palette */}
-      <AnimatePresence>
-        {isCommandPaletteOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-            onClick={() => setIsCommandPaletteOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="max-w-2xl mx-auto mt-20 p-4"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            >
-              <div className="p-4 rounded-xl bg-white border border-gray-200 shadow-xl">
-                <input
-                  type="text"
-                  placeholder="Search or type a command..."
-                  className="w-full p-4 text-lg bg-transparent border-none focus:outline-none text-gray-900"
-                  autoFocus
-                />
-                <div className="mt-4 space-y-2">
-                  <CommandItem icon={Users} title="Go to Employee Directory" />
-                  <CommandItem icon={Calendar} title="Schedule a Meeting" />
-                  <CommandItem icon={FileText} title="Create New Report" />
-                  <CommandItem icon={Settings} title="Open Settings" />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <FloatingAIAssistant />
+      <SpotlightCommandBar open={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
     </div>
   );
 }
